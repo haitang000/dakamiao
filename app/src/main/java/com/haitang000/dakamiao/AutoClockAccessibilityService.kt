@@ -1296,7 +1296,7 @@ class AutoClockAccessibilityService : AccessibilityService() {
 
         val title = when (result.status) {
             RunStatus.SUCCESS -> "✅ ${type.label}打卡成功"
-            RunStatus.NEED_FACE -> "⚠️ 需要你本人验证"
+            RunStatus.NEED_FACE -> "⚠️ 需要本人验证"
             RunStatus.STOPPED -> "⏹ 已停止"
             RunStatus.APP_NOT_FOUND -> "❌ 打卡失败"
             RunStatus.STEP_FAILED -> "❌ ${type.label}打卡失败"

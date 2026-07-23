@@ -1,467 +1,228 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:a="http://schemas.android.com/apk/res/android"
-    a:layout_width="match_parent"
-    a:layout_height="match_parent"
-    a:fitsSystemWindows="true"
-    a:orientation="vertical">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    android:orientation="vertical">
 
     <com.google.android.material.appbar.AppBarLayout
-        a:layout_width="match_parent"
-        a:layout_height="wrap_content">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
-            a:layout_width="match_parent"
-            a:layout_height="?attr/actionBarSize"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
             app:menu="@menu/menu_main"
             app:title="打卡喵 🐾" />
     </com.google.android.material.appbar.AppBarLayout>
 
     <FrameLayout
-        a:layout_width="match_parent"
-        a:layout_height="0dp"
-        a:layout_weight="1">
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
-        <!-- ===================== 首页：手动 / 测试 ===================== -->
+        <!-- ===================== 首页 ===================== -->
         <ScrollView
             android:id="@+id/pageHome"
-            a:layout_width="match_parent"
-            a:layout_height="match_parent"
-            a:fillViewport="true">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true">
 
             <LinearLayout
-                a:layout_width="match_parent"
-                a:layout_height="wrap_content"
-                a:orientation="vertical"
-                a:paddingHorizontal="16dp"
-                a:paddingBottom="24dp">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingBottom="24dp">
 
                 <TextView
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="12dp"
-                    a:text="自动打开钉钉并点击打卡。全程可用悬浮按钮 / 通知 / 音量下键随时停止。打卡是否成功请务必自行到钉钉核对。"
-                    a:textColor="?attr/colorOnSurfaceVariant"
-                    a:textSize="12sp" />
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="自动打开钉钉并点击打卡。全程可用悬浮按钮 / 通知 / 音量下键随时停止。打卡是否成功请务必自行到钉钉核对。"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="12sp" />
 
                 <TextView
                     style="@style/SectionTitle"
-                    a:layout_width="wrap_content"
-                    a:layout_height="wrap_content"
-                    a:text="手动打卡 / 测试" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="手动打卡 / 测试" />
 
                 <Button
                     android:id="@+id/btnTestOn"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="4dp"
-                    a:text="立即执行：上班打卡" />
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="立即执行：上班打卡" />
 
                 <Button
                     android:id="@+id/btnTestOff"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="4dp"
-                    a:text="立即执行：下班打卡" />
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="立即执行：下班打卡" />
 
                 <Button
                     android:id="@+id/btnStop"
                     style="@style/Widget.Material3.Button"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="12dp"
-                    a:text="■ 紧急停止"
-                    a:textColor="?attr/colorOnError"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="■ 紧急停止"
+                    android:textColor="?attr/colorOnError"
                     app:backgroundTint="?attr/colorError" />
 
                 <Button
                     android:id="@+id/btnDump"
                     style="@style/Widget.Material3.Button.OutlinedButton"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="12dp"
-                    a:text="抓取钉钉当前界面（调试，复制发我排查）" />
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="抓取钉钉当前界面（调试，复制发我排查）" />
 
                 <TextView
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="20dp"
-                    a:text="提示：\n• 定时打卡触发时手机需处于亮屏/可操作状态（钉钉界面能正常显示才点得到）。\n• 请先在钉钉里走一遍打卡，把每一步按钮上的文字，逐行填到「设置」里对应的步骤。\n• 若打卡需要人脸识别，App 会点到弹脸前一步停下并提醒你本人完成。"
-                    a:textColor="?attr/colorOnSurfaceVariant"
-                    a:textSize="12sp" />
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:text="提示：\n• 定时打卡触发时手机需处于亮屏/可操作状态。\n• 请先在钉钉里走一遍打卡，把每步按钮文字填到「设置 → 打卡步骤」里。\n• 若打卡需要人脸识别，App 会点到弹脸前一步停下并提醒你本人完成。"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="12sp" />
             </LinearLayout>
         </ScrollView>
 
         <!-- ===================== 定时 ===================== -->
         <ScrollView
             android:id="@+id/pageSchedule"
-            a:layout_width="match_parent"
-            a:layout_height="match_parent"
-            a:fillViewport="true"
-            a:visibility="gone">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:visibility="gone">
 
             <LinearLayout
-                a:layout_width="match_parent"
-                a:layout_height="wrap_content"
-                a:orientation="vertical"
-                a:paddingHorizontal="16dp"
-                a:paddingBottom="24dp">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingBottom="24dp">
 
                 <TextView
                     style="@style/SectionTitle"
-                    a:layout_width="wrap_content"
-                    a:layout_height="wrap_content"
-                    a:text="定时自动打卡" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="定时自动打卡" />
 
                 <com.google.android.material.materialswitch.MaterialSwitch
                     android:id="@+id/swEnabled"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:paddingVertical="8dp"
-                    a:text="启用定时自动打卡"
-                    a:textSize="16sp" />
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingVertical="8dp"
+                    android:text="启用定时自动打卡"
+                    android:textSize="16sp" />
 
                 <com.google.android.material.checkbox.MaterialCheckBox
                     android:id="@+id/cbWorkday"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:text="仅工作日（周一至周五）" />
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="仅工作日（周一至周五）" />
 
                 <Button
                     android:id="@+id/btnOnTime"
                     style="@style/Widget.Material3.Button.OutlinedButton"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="8dp"
-                    a:text="上班时间：09:00" />
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="上班时间：09:00" />
 
                 <Button
                     android:id="@+id/btnOffTime"
                     style="@style/Widget.Material3.Button.OutlinedButton"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="8dp"
-                    a:text="下班时间：18:00" />
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="下班时间：18:00" />
 
                 <TextView
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="16dp"
-                    a:text="到点会先弹 5 秒倒计时确认，无操作自动开始。若锁屏，会点亮屏幕并强提醒你解锁，解锁后自动打卡（安全锁无法自动解锁）。"
-                    a:textColor="?attr/colorOnSurfaceVariant"
-                    a:textSize="12sp" />
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="到点会先弹 5 秒倒计时确认，无操作自动开始。若锁屏，会点亮屏幕并强提醒你解锁，解锁后自动打卡（安全锁无法自动解锁）。"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="12sp" />
             </LinearLayout>
         </ScrollView>
 
-        <!-- ===================== 设置：步骤 / 关键词 ===================== -->
+        <!-- ===================== 设置（多级菜单） ===================== -->
         <ScrollView
             android:id="@+id/pageSettings"
-            a:layout_width="match_parent"
-            a:layout_height="match_parent"
-            a:fillViewport="true"
-            a:visibility="gone">
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:fillViewport="true"
+            android:visibility="gone">
 
             <LinearLayout
-                a:layout_width="match_parent"
-                a:layout_height="wrap_content"
-                a:orientation="vertical"
-                a:paddingHorizontal="16dp"
-                a:paddingBottom="24dp">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="16dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="24dp">
 
-                <TextView
-                    style="@style/SectionTitle"
-                    a:layout_width="wrap_content"
-                    a:layout_height="wrap_content"
-                    a:text="打卡步骤（一行一个按钮文案，从上到下依次点击）" />
-
-                <TextView
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="4dp"
-                    a:text="语法：@开头=动作（@回到主页 先退回主界面、@滚动到顶部）；=开头=精确匹配（只点文字完全相等的，如 =工作台 避免误点进会话）；其余=包含匹配。"
-                    a:textColor="?attr/colorOnSurfaceVariant"
-                    a:textSize="12sp" />
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="8dp"
-                    a:hint="上班步骤（一行一个）">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etOnSteps"
-                        a:layout_width="match_parent"
-                        a:layout_height="wrap_content"
-                        a:gravity="top"
-                        a:inputType="textMultiLine"
-                        a:minLines="2" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="8dp"
-                    a:hint="下班步骤（一行一个）">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etOffSteps"
-                        a:layout_width="match_parent"
-                        a:layout_height="wrap_content"
-                        a:gravity="top"
-                        a:inputType="textMultiLine"
-                        a:minLines="2" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="8dp"
-                    a:hint="判定「打卡成功」的关键词">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etSuccess"
-                        a:layout_width="match_parent"
-                        a:layout_height="wrap_content"
-                        a:gravity="top"
-                        a:inputType="textMultiLine"
-                        a:minLines="2" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="8dp"
-                    a:hint="判定「需人脸识别、交还给你」的关键词（拍照通常可选，默认不拦）">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etFace"
-                        a:layout_width="match_parent"
-                        a:layout_height="wrap_content"
-                        a:gravity="top"
-                        a:inputType="textMultiLine"
-                        a:minLines="2" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="8dp"
-                    a:hint="需先确认才打卡的关键词（如 外勤、外出）">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etConfirm"
-                        a:layout_width="match_parent"
-                        a:layout_height="wrap_content"
-                        a:gravity="top"
-                        a:inputType="textMultiLine"
-                        a:minLines="1" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.textfield.TextInputLayout
-                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="8dp"
-                    a:hint="判定「被拦截/打卡失败」的关键词（如 虚拟定位、不在考勤范围）">
-
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/etFail"
-                        a:layout_width="match_parent"
-                        a:layout_height="wrap_content"
-                        a:gravity="top"
-                        a:inputType="textMultiLine"
-                        a:minLines="2" />
-                </com.google.android.material.textfield.TextInputLayout>
-
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/cbOcr"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="8dp"
-                    a:text="启用 OCR 兜底：按钮是图片、读不到文字时，靠截屏文字识别定位（需安卓11+，全程离线不联网）" />
-
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/cbKill"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="4dp"
-                    a:text="打卡前先退出钉钉后台：冷启动到消息页，导航更稳定" />
-
-                <Button
-                    android:id="@+id/btnResetSteps"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="8dp"
-                    a:text="填入推荐步骤（覆盖上方，再点保存）" />
-
-                <Button
-                    android:id="@+id/btnSaveSteps"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="4dp"
-                    a:text="保存步骤/关键词设置" />
-            </LinearLayout>
-        </ScrollView>
-
-        <!-- ===================== 权限 ===================== -->
-        <ScrollView
-            android:id="@+id/pagePermissions"
-            a:layout_width="match_parent"
-            a:layout_height="match_parent"
-            a:fillViewport="true"
-            a:visibility="gone">
-
-            <LinearLayout
-                a:layout_width="match_parent"
-                a:layout_height="wrap_content"
-                a:orientation="vertical"
-                a:paddingHorizontal="16dp"
-                a:paddingBottom="24dp">
-
-                <TextView
-                    style="@style/SectionTitle"
-                    a:layout_width="wrap_content"
-                    a:layout_height="wrap_content"
-                    a:text="权限（点开关前往系统设置开启）" />
-
-                <!-- 无障碍 -->
                 <LinearLayout
-                    android:id="@+id/rowAccessibility"
+                    android:id="@+id/rowPermissions"
                     style="@style/PermRow">
 
                     <LinearLayout style="@style/PermRowText">
 
-                        <TextView style="@style/PermTitle" a:text="无障碍服务" />
+                        <TextView style="@style/PermTitle" android:text="权限管理" />
 
-                        <TextView style="@style/PermSubtitle" a:text="核心 · 读取钉钉界面并模拟点击" />
+                        <TextView style="@style/PermSubtitle" android:text="无障碍 · 悬浮窗 · 通知 · 闹钟 · 后台" />
                     </LinearLayout>
 
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/swAccessibility"
-                        style="@style/PermSwitch" />
+                    <TextView style="@style/RowChevron" android:text="›" />
                 </LinearLayout>
 
                 <View style="@style/PermDivider" />
 
-                <!-- 悬浮窗 -->
                 <LinearLayout
-                    android:id="@+id/rowOverlay"
+                    android:id="@+id/rowSteps"
                     style="@style/PermRow">
 
                     <LinearLayout style="@style/PermRowText">
 
-                        <TextView style="@style/PermTitle" a:text="悬浮窗" />
+                        <TextView style="@style/PermTitle" android:text="打卡步骤与设置" />
 
-                        <TextView style="@style/PermSubtitle" a:text="停止按钮 · 边框光效 · 确认框" />
+                        <TextView style="@style/PermSubtitle" android:text="导航步骤 · 关键词 · OCR · 退出后台" />
                     </LinearLayout>
 
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/swOverlay"
-                        style="@style/PermSwitch" />
+                    <TextView style="@style/RowChevron" android:text="›" />
                 </LinearLayout>
 
                 <View style="@style/PermDivider" />
 
-                <!-- 通知 -->
                 <LinearLayout
-                    android:id="@+id/rowNotification"
+                    android:id="@+id/rowAbout"
                     style="@style/PermRow">
 
                     <LinearLayout style="@style/PermRowText">
 
-                        <TextView style="@style/PermTitle" a:text="通知" />
+                        <TextView style="@style/PermTitle" android:text="关于打卡喵" />
 
-                        <TextView style="@style/PermSubtitle" a:text="打卡进度 · 结果 · 锁屏提醒" />
+                        <TextView style="@style/PermSubtitle" android:text="版本信息 · 检查更新 · 开源地址" />
                     </LinearLayout>
 
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/swNotification"
-                        style="@style/PermSwitch" />
+                    <TextView style="@style/RowChevron" android:text="›" />
                 </LinearLayout>
-
-                <View style="@style/PermDivider" />
-
-                <!-- 精确闹钟 -->
-                <LinearLayout
-                    android:id="@+id/rowAlarm"
-                    style="@style/PermRow">
-
-                    <LinearLayout style="@style/PermRowText">
-
-                        <TextView style="@style/PermTitle" a:text="精确闹钟" />
-
-                        <TextView style="@style/PermSubtitle" a:text="定时准点触发，不被系统延迟" />
-                    </LinearLayout>
-
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/swAlarm"
-                        style="@style/PermSwitch" />
-                </LinearLayout>
-
-                <View style="@style/PermDivider" />
-
-                <!-- 电池优化 -->
-                <LinearLayout
-                    android:id="@+id/rowBattery"
-                    style="@style/PermRow">
-
-                    <LinearLayout style="@style/PermRowText">
-
-                        <TextView style="@style/PermTitle" a:text="忽略电池优化" />
-
-                        <TextView style="@style/PermSubtitle" a:text="建议 · 防止定时被系统杀后台" />
-                    </LinearLayout>
-
-                    <com.google.android.material.materialswitch.MaterialSwitch
-                        android:id="@+id/swBattery"
-                        style="@style/PermSwitch" />
-                </LinearLayout>
-
-                <View style="@style/PermDivider" />
-
-                <!-- 自启动（无法读取状态，用箭头引导） -->
-                <LinearLayout
-                    android:id="@+id/rowAutostart"
-                    style="@style/PermRow">
-
-                    <LinearLayout style="@style/PermRowText">
-
-                        <TextView style="@style/PermTitle" a:text="自启动 / 后台运行" />
-
-                        <TextView style="@style/PermSubtitle" a:text="国产 ROM 必开 · 点此前往系统设置" />
-                    </LinearLayout>
-
-                    <TextView
-                        a:layout_width="wrap_content"
-                        a:layout_height="wrap_content"
-                        a:text="›"
-                        a:textColor="?attr/colorOnSurfaceVariant"
-                        a:textSize="24sp" />
-                </LinearLayout>
-
-                <TextView
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="16dp"
-                    a:text="后台保活：开启「定时」后会常驻一条低优先级通知保持后台运行。国产 ROM 请务必开启自启动/后台运行，并把电池设为「无限制」，否则到点可能不触发。"
-                    a:textColor="?attr/colorOnSurfaceVariant"
-                    a:textSize="12sp" />
             </LinearLayout>
         </ScrollView>
     </FrameLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav"
-        a:layout_width="match_parent"
-        a:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         app:menu="@menu/menu_bottom_nav" />
 
 </LinearLayout>
