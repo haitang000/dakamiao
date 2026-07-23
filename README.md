@@ -1,5 +1,7 @@
 # 打卡喵 🐾
 
+[![Android CI](https://github.com/haitang000/dakamiao/actions/workflows/android.yml/badge.svg)](https://github.com/haitang000/dakamiao/actions/workflows/android.yml)
+
 通过无障碍服务自动打开钉钉并完成每日打卡的安卓工具。核心目标：**省事**，且**任何时候都能被你叫停**。
 
 > ⚠️ 是否使用、是否符合公司规定，请你自行判断。本工具**不伪造定位、不伪造人脸**——遇到人脸/拍照会停下来交还给你本人。
