@@ -330,80 +330,128 @@
                     style="@style/SectionTitle"
                     a:layout_width="wrap_content"
                     a:layout_height="wrap_content"
-                    a:text="权限（首次使用请依次开启）" />
+                    a:text="权限（点开关前往系统设置开启）" />
 
-                <Button
-                    android:id="@+id/btnAccessibility"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:text="开启无障碍服务（核心）" />
+                <!-- 无障碍 -->
+                <LinearLayout
+                    android:id="@+id/rowAccessibility"
+                    style="@style/PermRow">
+
+                    <LinearLayout style="@style/PermRowText">
+
+                        <TextView style="@style/PermTitle" a:text="无障碍服务" />
+
+                        <TextView style="@style/PermSubtitle" a:text="核心 · 读取钉钉界面并模拟点击" />
+                    </LinearLayout>
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/swAccessibility"
+                        style="@style/PermSwitch" />
+                </LinearLayout>
+
+                <View style="@style/PermDivider" />
+
+                <!-- 悬浮窗 -->
+                <LinearLayout
+                    android:id="@+id/rowOverlay"
+                    style="@style/PermRow">
+
+                    <LinearLayout style="@style/PermRowText">
+
+                        <TextView style="@style/PermTitle" a:text="悬浮窗" />
+
+                        <TextView style="@style/PermSubtitle" a:text="停止按钮 · 边框光效 · 确认框" />
+                    </LinearLayout>
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/swOverlay"
+                        style="@style/PermSwitch" />
+                </LinearLayout>
+
+                <View style="@style/PermDivider" />
+
+                <!-- 通知 -->
+                <LinearLayout
+                    android:id="@+id/rowNotification"
+                    style="@style/PermRow">
+
+                    <LinearLayout style="@style/PermRowText">
+
+                        <TextView style="@style/PermTitle" a:text="通知" />
+
+                        <TextView style="@style/PermSubtitle" a:text="打卡进度 · 结果 · 锁屏提醒" />
+                    </LinearLayout>
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/swNotification"
+                        style="@style/PermSwitch" />
+                </LinearLayout>
+
+                <View style="@style/PermDivider" />
+
+                <!-- 精确闹钟 -->
+                <LinearLayout
+                    android:id="@+id/rowAlarm"
+                    style="@style/PermRow">
+
+                    <LinearLayout style="@style/PermRowText">
+
+                        <TextView style="@style/PermTitle" a:text="精确闹钟" />
+
+                        <TextView style="@style/PermSubtitle" a:text="定时准点触发，不被系统延迟" />
+                    </LinearLayout>
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/swAlarm"
+                        style="@style/PermSwitch" />
+                </LinearLayout>
+
+                <View style="@style/PermDivider" />
+
+                <!-- 电池优化 -->
+                <LinearLayout
+                    android:id="@+id/rowBattery"
+                    style="@style/PermRow">
+
+                    <LinearLayout style="@style/PermRowText">
+
+                        <TextView style="@style/PermTitle" a:text="忽略电池优化" />
+
+                        <TextView style="@style/PermSubtitle" a:text="建议 · 防止定时被系统杀后台" />
+                    </LinearLayout>
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/swBattery"
+                        style="@style/PermSwitch" />
+                </LinearLayout>
+
+                <View style="@style/PermDivider" />
+
+                <!-- 自启动（无法读取状态，用箭头引导） -->
+                <LinearLayout
+                    android:id="@+id/rowAutostart"
+                    style="@style/PermRow">
+
+                    <LinearLayout style="@style/PermRowText">
+
+                        <TextView style="@style/PermTitle" a:text="自启动 / 后台运行" />
+
+                        <TextView style="@style/PermSubtitle" a:text="国产 ROM 必开 · 点此前往系统设置" />
+                    </LinearLayout>
+
+                    <TextView
+                        a:layout_width="wrap_content"
+                        a:layout_height="wrap_content"
+                        a:text="›"
+                        a:textColor="?attr/colorOnSurfaceVariant"
+                        a:textSize="24sp" />
+                </LinearLayout>
 
                 <TextView
-                    android:id="@+id/tvAccessibilityStatus"
-                    style="@style/StatusText"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content" />
-
-                <Button
-                    android:id="@+id/btnOverlay"
-                    style="@style/Widget.Material3.Button.TonalButton"
                     a:layout_width="match_parent"
                     a:layout_height="wrap_content"
-                    a:text="开启悬浮窗（停止按钮 / 边框 / 确认框）" />
-
-                <TextView
-                    android:id="@+id/tvOverlayStatus"
-                    style="@style/StatusText"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content" />
-
-                <Button
-                    android:id="@+id/btnNotification"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:text="开启通知权限" />
-
-                <TextView
-                    android:id="@+id/tvNotificationStatus"
-                    style="@style/StatusText"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content" />
-
-                <Button
-                    android:id="@+id/btnExactAlarm"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:text="允许精确闹钟（定时准点）" />
-
-                <TextView
-                    android:id="@+id/tvAlarmStatus"
-                    style="@style/StatusText"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content" />
-
-                <Button
-                    android:id="@+id/btnBattery"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:text="忽略电池优化（建议，防止定时被系统杀）" />
-
-                <Button
-                    android:id="@+id/btnAutostart"
-                    style="@style/Widget.Material3.Button.TonalButton"
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="4dp"
-                    a:text="允许自启动 / 后台运行（国产 ROM 必开）" />
-
-                <TextView
-                    a:layout_width="match_parent"
-                    a:layout_height="wrap_content"
-                    a:layout_marginTop="12dp"
-                    a:text="后台保活：开启「定时」后会常驻一条低优先级通知保持后台运行。国产 ROM 请务必在上方开启自启动/后台运行，并把电池设为「无限制」，否则到点可能不触发。"
+                    a:layout_marginTop="16dp"
+                    a:text="后台保活：开启「定时」后会常驻一条低优先级通知保持后台运行。国产 ROM 请务必开启自启动/后台运行，并把电池设为「无限制」，否则到点可能不触发。"
                     a:textColor="?attr/colorOnSurfaceVariant"
                     a:textSize="12sp" />
             </LinearLayout>

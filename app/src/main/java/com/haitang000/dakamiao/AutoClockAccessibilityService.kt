@@ -1144,7 +1144,7 @@ class AutoClockAccessibilityService : AccessibilityService() {
         val ctx = ContextThemeWrapper(this, android.R.style.Theme_DeviceDefault_Light_Dialog_Alert)
         var decided = false
         val dialog = AlertDialog.Builder(ctx)
-            .setTitle("⚠️ 打卡需要确认")
+            .setTitle("⚠️ 任务受阻")
             .setMessage(message)
             .setCancelable(false)
             .setPositiveButton("继续打卡") { d, _ -> decided = true; d.dismiss(); onResult(true) }

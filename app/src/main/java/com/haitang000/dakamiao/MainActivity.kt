@@ -96,22 +96,23 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() = with(binding) {
-        // —— 权限 ——
-        btnAccessibility.setOnClickListener {
+        // —— 权限（开关行，点整行跳系统设置去开/关） ——
+        rowAccessibility.setOnClickListener {
             startActivitySafe(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
             toast("请在列表里找到「打卡喵」并开启")
         }
-        btnOverlay.setOnClickListener {
-            val i = Intent(
-                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:$packageName")
+        rowOverlay.setOnClickListener {
+            startActivitySafe(
+                Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:$packageName")
+                )
             )
-            startActivitySafe(i)
         }
-        btnNotification.setOnClickListener { requestNotificationPermission() }
-        btnExactAlarm.setOnClickListener { openExactAlarmSettings() }
-        btnBattery.setOnClickListener { requestIgnoreBattery() }
-        btnAutostart.setOnClickListener { openAutostartSettings() }
+        rowNotification.setOnClickListener { requestNotificationPermission() }
+        rowAlarm.setOnClickListener { openExactAlarmSettings() }
+        rowBattery.setOnClickListener { requestIgnoreBattery() }
+        rowAutostart.setOnClickListener { openAutostartSettings() }
 
         // —— 定时 ——
         swEnabled.setOnCheckedChangeListener { _, checked ->
@@ -293,13 +294,13 @@ class MainActivity : AppCompatActivity() {
     // ------------------------------------------------------------------
 
     private fun refreshStatuses() = with(binding) {
-        setStatus(tvAccessibilityStatus, AutoClockAccessibilityService.isConnected())
-        setStatus(tvOverlayStatus, Settings.canDrawOverlays(this@MainActivity))
-        setStatus(
-            tvNotificationStatus,
+        // 开关只作状态显示（clickable=false），点整行才跳设置；这里直接设状态不会触发监听
+        swAccessibility.isChecked = AutoClockAccessibilityService.isConnected()
+        swOverlay.isChecked = Settings.canDrawOverlays(this@MainActivity)
+        swNotification.isChecked =
             NotificationManagerCompat.from(this@MainActivity).areNotificationsEnabled()
-        )
-        setStatus(tvAlarmStatus, canScheduleExact())
+        swAlarm.isChecked = canScheduleExact()
+        swBattery.isChecked = isIgnoringBattery()
     }
 
     private fun canScheduleExact(): Boolean {
@@ -309,14 +310,10 @@ class MainActivity : AppCompatActivity() {
         } else true
     }
 
-    private fun setStatus(view: android.widget.TextView, ok: Boolean) {
-        if (ok) {
-            view.text = "✅ 已开启"
-            view.setTextColor(0xFF2E7D32.toInt())
-        } else {
-            view.text = "❌ 未开启"
-            view.setTextColor(0xFFC62828.toInt())
-        }
+    private fun isIgnoringBattery(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) return true
+        val pm = getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+        return pm.isIgnoringBatteryOptimizations(packageName)
     }
 
     // ------------------------------------------------------------------

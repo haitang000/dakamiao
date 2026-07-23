@@ -8,6 +8,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings
+import android.view.animation.AccelerateInterpolator
+import android.view.animation.DecelerateInterpolator
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -23,6 +25,7 @@ class OnboardingActivity : AppCompatActivity() {
     private lateinit var binding: ActivityOnboardingBinding
     private var index = 0
     private var ackChecked = false
+    private var animating = false
 
     private val notifPermLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { render() }
@@ -45,9 +48,9 @@ class OnboardingActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.btnAction.setOnClickListener { steps[index].action?.invoke() }
-        binding.btnPrev.setOnClickListener { if (index > 0) { index--; render() } }
+        binding.btnPrev.setOnClickListener { if (index > 0) goTo(index - 1, forward = false) }
         binding.btnNext.setOnClickListener {
-            if (index >= steps.lastIndex) finishOnboarding() else { index++; render() }
+            if (index >= steps.lastIndex) finishOnboarding() else goTo(index + 1, forward = true)
         }
         binding.cbAck.setOnCheckedChangeListener { _, checked ->
             ackChecked = checked
@@ -62,9 +65,31 @@ class OnboardingActivity : AppCompatActivity() {
         render() // 从系统设置页返回后刷新状态
     }
 
+    /** 带滑动淡入淡出过渡地切换到某一步。 */
+    private fun goTo(target: Int, forward: Boolean) {
+        if (animating) return
+        animating = true
+        val dir = if (forward) 1f else -1f
+        val dist = 48f * resources.displayMetrics.density
+        binding.contentContainer.animate()
+            .translationX(-dir * dist).alpha(0f)
+            .setDuration(140).setInterpolator(AccelerateInterpolator())
+            .withEndAction {
+                index = target
+                render()
+                binding.contentContainer.translationX = dir * dist
+                binding.contentContainer.alpha = 0f
+                binding.contentContainer.animate()
+                    .translationX(0f).alpha(1f)
+                    .setDuration(240).setInterpolator(DecelerateInterpolator())
+                    .withEndAction { animating = false }
+                    .start()
+            }.start()
+    }
+
     private fun render() {
         val step = steps[index]
-        binding.tvProgress.text = "${index + 1} / ${steps.size}"
+        binding.progress.setProgressCompat((index + 1) * 100 / steps.size, true)
         binding.tvEmoji.text = step.emoji
         binding.tvTitle.text = step.title
         binding.tvDesc.text = step.desc
