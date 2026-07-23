@@ -82,6 +82,7 @@ class AutoClockAccessibilityService : AccessibilityService() {
 
     private var overlayView: View? = null
     private var borderView: BorderMarqueeView? = null
+    private var clickOverlayView: ClickOverlayView? = null
     private var errorDialog: AlertDialog? = null
     private var confirmDialog: AlertDialog? = null
     private var countdownDialog: AlertDialog? = null
@@ -115,6 +116,7 @@ class AutoClockAccessibilityService : AccessibilityService() {
         shouldStop = true
         removeOverlay()
         removeBorder()
+        removeClickOverlay()
         dismissErrorPopup()
         confirmDialog?.let { runCatching { it.dismiss() } }
         countdownDialog?.let { runCatching { it.dismiss() } }
@@ -341,6 +343,7 @@ class AutoClockAccessibilityService : AccessibilityService() {
         shouldStop = false
         borderBlocked = false
         showBorder()
+        showClickOverlay()
         showOverlay()
         showRunningNotification(type)
 
@@ -642,10 +645,13 @@ class AutoClockAccessibilityService : AccessibilityService() {
                 lastOcr = now
                 val rect = ScreenTextLocator.findText(this, keyword)
                 if (shouldStop) return false
-                if (rect != null && gestureClickRect(rect)) {
-                    Log.i(TAG, "OCR 兜底命中并点击「$keyword」")
-                    updateBorder(false)
-                    return true
+                if (rect != null) {
+                    showClickIndicator(rect.exactCenterX(), rect.exactCenterY())
+                    if (gestureClickRect(rect)) {
+                        Log.i(TAG, "OCR 兜底命中并点击「$keyword」")
+                        updateBorder(false)
+                        return true
+                    }
                 }
             }
 
@@ -781,6 +787,11 @@ class AutoClockAccessibilityService : AccessibilityService() {
 
     /** 点击节点：优先点自身或最近的可点祖先；都不行则在节点中心派发一次点击手势。 */
     private fun clickNode(node: AccessibilityNodeInfo): Boolean {
+        // 让用户看到点在哪：在节点中心画一圈涟漪
+        val r = Rect()
+        node.getBoundsInScreen(r)
+        showClickIndicator(r.exactCenterX(), r.exactCenterY())
+
         var n: AccessibilityNodeInfo? = node
         while (n != null) {
             if (n.isClickable) {
@@ -914,6 +925,7 @@ class AutoClockAccessibilityService : AccessibilityService() {
 
         removeOverlay()
         removeBorder()
+        removeClickOverlay()
         running = false
         shouldStop = false
         showResultNotification(type, result)
@@ -1041,6 +1053,61 @@ class AutoClockAccessibilityService : AccessibilityService() {
                 }
             }.start()
         }
+    }
+
+    // ------------------------------------------------------------------
+    // 点击指示层（涟漪）——让用户看到软件点了哪里
+    // ------------------------------------------------------------------
+
+    private fun showClickOverlay() {
+        if (!Settings.canDrawOverlays(this)) return
+        mainHandler.post {
+            if (clickOverlayView != null) return@post
+            val view = ClickOverlayView(this)
+            val type =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+                    WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+                else
+                    @Suppress("DEPRECATION")
+                    WindowManager.LayoutParams.TYPE_PHONE
+            val params = WindowManager.LayoutParams(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
+                type,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+                PixelFormat.TRANSLUCENT
+            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                params.layoutInDisplayCutoutMode =
+                    WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_ALWAYS
+            }
+            try {
+                windowManager?.addView(view, params)
+                clickOverlayView = view
+            } catch (t: Throwable) {
+                Log.e(TAG, "添加点击指示层失败", t)
+            }
+        }
+    }
+
+    private fun removeClickOverlay() {
+        mainHandler.post {
+            clickOverlayView?.let {
+                try {
+                    windowManager?.removeView(it)
+                } catch (_: Throwable) {
+                }
+            }
+            clickOverlayView = null
+        }
+    }
+
+    /** 在屏幕坐标 (x,y) 显示一圈点击涟漪。可从任意线程调用。 */
+    private fun showClickIndicator(x: Float, y: Float) {
+        mainHandler.post { clickOverlayView?.ripple(x, y) }
     }
 
     /** 切换边框颜色状态；仅在状态变化时下发，避免频繁重启颜色动画。转入受阻时响一次提示音。 */
