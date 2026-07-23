@@ -67,7 +67,7 @@ object AlarmScheduler {
                 am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi)
             }
         } catch (se: SecurityException) {
-            Log.e(TAG, "排精确闹钟被拒，退化为非精确", se)
+            Log.e(TAG, "排精确闹钟被拒，降级为非精确", se)
             am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi)
         }
         Log.i(TAG, "已排 ${type.label} 闹钟：${java.util.Date(triggerAt)}")

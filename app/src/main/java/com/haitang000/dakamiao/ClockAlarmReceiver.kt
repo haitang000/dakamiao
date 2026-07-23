@@ -49,7 +49,7 @@ class ClockAlarmReceiver : BroadcastReceiver() {
     private fun notifyAccessibilityOff(context: Context, type: ClockType) {
         val n = NotificationCompat.Builder(context, AutoClockAccessibilityService.CHANNEL_ID)
             .setContentTitle("⚠️ 无法自动${type.label}打卡")
-            .setContentText("无障碍服务未开启，打卡喵无法操作钉钉。请打开 App 重新开启无障碍服务。")
+            .setContentText("无障碍服务未开启，打卡喵无法操作。请打开 App 重新开启无障碍服务。")
             .setSmallIcon(android.R.drawable.stat_notify_error)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)

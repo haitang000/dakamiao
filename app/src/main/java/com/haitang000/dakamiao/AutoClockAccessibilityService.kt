@@ -17,8 +17,6 @@ import android.content.IntentFilter
 import android.graphics.Path
 import android.graphics.PixelFormat
 import android.graphics.Rect
-import android.media.AudioManager
-import android.media.ToneGenerator
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
@@ -84,7 +82,6 @@ class AutoClockAccessibilityService : AccessibilityService() {
 
     private var overlayView: View? = null
     private var borderView: BorderMarqueeView? = null
-    private var toneGen: ToneGenerator? = null
     private var errorDialog: AlertDialog? = null
     private var confirmDialog: AlertDialog? = null
     private var countdownDialog: AlertDialog? = null
@@ -121,8 +118,6 @@ class AutoClockAccessibilityService : AccessibilityService() {
         dismissErrorPopup()
         confirmDialog?.let { runCatching { it.dismiss() } }
         countdownDialog?.let { runCatching { it.dismiss() } }
-        toneGen?.let { runCatching { it.release() } }
-        toneGen = null
         if (userPresentRegistered) runCatching { unregisterReceiver(userPresentReceiver) }
         userPresentRegistered = false
         instance = null
@@ -1025,6 +1020,9 @@ class AutoClockAccessibilityService : AccessibilityService() {
             try {
                 windowManager?.addView(view, params)
                 borderView = view
+                // 淡入
+                view.alpha = 0f
+                view.animate().alpha(1f).setDuration(380).start()
             } catch (t: Throwable) {
                 Log.e(TAG, "添加边框跑马灯失败", t)
             }
@@ -1033,13 +1031,15 @@ class AutoClockAccessibilityService : AccessibilityService() {
 
     private fun removeBorder() {
         mainHandler.post {
-            borderView?.let {
+            val view = borderView ?: return@post
+            borderView = null // 立即置空，允许下次重新创建
+            // 淡出后再移除
+            view.animate().alpha(0f).setDuration(320).withEndAction {
                 try {
-                    windowManager?.removeView(it)
+                    windowManager?.removeView(view)
                 } catch (_: Throwable) {
                 }
-            }
-            borderView = null
+            }.start()
         }
     }
 
@@ -1051,16 +1051,9 @@ class AutoClockAccessibilityService : AccessibilityService() {
         if (blocked) playBlockedTone()
     }
 
-    /** 操作受阻时的提示音：短促双音，不需额外音频文件。 */
+    /** 受阻/失败提示音：柔和的合成双音钟声。 */
     private fun playBlockedTone() {
-        try {
-            if (toneGen == null) {
-                toneGen = ToneGenerator(AudioManager.STREAM_NOTIFICATION, 90)
-            }
-            toneGen?.startTone(ToneGenerator.TONE_PROP_BEEP2, 350)
-        } catch (t: Throwable) {
-            Log.e(TAG, "播放受阻提示音失败", t)
-        }
+        SoundFx.playAlert()
     }
 
     // ------------------------------------------------------------------

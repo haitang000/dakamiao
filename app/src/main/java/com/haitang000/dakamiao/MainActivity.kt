@@ -179,7 +179,7 @@ class MainActivity : AppCompatActivity() {
                 toast("请先开启无障碍服务")
                 startActivitySafe(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
             } else {
-                toast("4 秒后抓取，请立刻切到钉钉打卡页面")
+                toast("将在 4 秒后抓取，请立刻切到钉钉打卡页面")
                 svc.scheduleDump(4000)
             }
         }
@@ -216,7 +216,7 @@ class MainActivity : AppCompatActivity() {
         Prefs.setConfirmRaw(this, binding.etConfirm.text.toString())
         Prefs.setFailRaw(this, binding.etFail.text.toString())
 
-        toast("开始${type.label}打卡，可随时用悬浮按钮/音量下键停止")
+        toast("已开始${type.label}打卡，您可随时用悬浮按钮/音量下键停止任务")
         svc.startClockIn(type)
     }
 

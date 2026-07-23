@@ -15,17 +15,6 @@ import android.view.View
 import android.view.animation.LinearInterpolator
 import kotlin.math.PI
 import kotlin.math.sin
-
-/**
- * 屏幕边缘弥散辉光（参考 Apple Intelligence 的 edge glow）：一圈紧贴屏幕边缘、向内柔和扩散的
- * 多色光晕，颜色沿边框缓慢流动，并带轻微「呼吸」。用来表示打卡喵正在自动操作：
- *  - 冷色（蓝/靛/紫/粉/青）流动 = 正在正常操作；
- *  - 暖色（红/橙/琥珀）= 操作受阻。
- *
- * 实现：把一条贴边的圆角矩形路径用「旋转的扫描渐变(SweepGradient)」描边，叠多层不同半径的
- * 高斯模糊(BlurMaskFilter)做出弥散辉光；描边中心压在屏幕最外缘，模糊只在向内一侧可见，
- * 因此最亮在边缘、向内渐隐。View 中间透明，配合窗口 FLAG_NOT_TOUCHABLE，触摸全部穿透到钉钉。
- */
 class BorderMarqueeView(context: Context) : View(context) {
 
     private val density = resources.displayMetrics.density
