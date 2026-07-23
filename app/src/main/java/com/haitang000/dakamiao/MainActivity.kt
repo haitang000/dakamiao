@@ -64,6 +64,7 @@ class MainActivity : AppCompatActivity() {
         swEnabled.isChecked = Prefs.isEnabled(this@MainActivity)
         cbWorkday.isChecked = Prefs.isWorkdayOnly(this@MainActivity)
         cbOcr.isChecked = Prefs.isOcrEnabled(this@MainActivity)
+        cbKill.isChecked = Prefs.isKillBefore(this@MainActivity)
         updateTimeLabels()
         etOnSteps.setText(Prefs.getStepsRaw(this@MainActivity, ClockType.ON))
         etOffSteps.setText(Prefs.getStepsRaw(this@MainActivity, ClockType.OFF))
@@ -126,6 +127,9 @@ class MainActivity : AppCompatActivity() {
         }
         cbOcr.setOnCheckedChangeListener { _, checked ->
             Prefs.setOcrEnabled(this@MainActivity, checked)
+        }
+        cbKill.setOnCheckedChangeListener { _, checked ->
+            Prefs.setKillBefore(this@MainActivity, checked)
         }
         btnOnTime.setOnClickListener { pickTime(ClockType.ON) }
         btnOffTime.setOnClickListener { pickTime(ClockType.OFF) }

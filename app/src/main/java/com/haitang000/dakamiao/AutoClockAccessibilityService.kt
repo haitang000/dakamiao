@@ -2,6 +2,7 @@ package com.haitang000.dakamiao
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.app.ActivityManager
 import android.app.AlertDialog
 import android.app.KeyguardManager
 import android.app.NotificationChannel
@@ -370,11 +371,20 @@ class AutoClockAccessibilityService : AccessibilityService() {
     private data class RunResult(val status: RunStatus, val detail: String)
 
     private fun runSequence(type: ClockType): RunResult {
+        // 0) 可选：先退出钉钉后台，让下面冷启动到干净的消息页
+        val killed = Prefs.isKillBefore(this)
+        if (killed) {
+            killDingTalk()
+            if (!sleepChecked(1200)) return stopped()
+        }
+
         // 1) 打开钉钉
         if (!launchDingTalk()) {
             return RunResult(RunStatus.APP_NOT_FOUND, "未找到钉钉，请确认已安装")
         }
-        if (!sleepChecked(Prefs.getLaunchWaitMs(this))) return stopped()
+        // 冷启动渲染更慢，多等一会儿
+        val launchWait = Prefs.getLaunchWaitMs(this) + if (killed) 2500L else 0L
+        if (!sleepChecked(launchWait)) return stopped()
 
         // 2) 逐步导航并点击
         val steps = Prefs.getSteps(this, type)
@@ -443,6 +453,17 @@ class AutoClockAccessibilityService : AccessibilityService() {
     // ------------------------------------------------------------------
     // 打开钉钉
     // ------------------------------------------------------------------
+
+    /** 退出钉钉后台进程（非 root，best-effort）。若钉钉正在前台则无效，但通常触发时它在后台。 */
+    private fun killDingTalk() {
+        try {
+            val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+            am.killBackgroundProcesses(DINGTALK_PKG)
+            Log.i(TAG, "已请求退出钉钉后台")
+        } catch (t: Throwable) {
+            Log.e(TAG, "退出钉钉后台失败", t)
+        }
+    }
 
     private fun launchDingTalk(): Boolean {
         val intent = packageManager.getLaunchIntentForPackage(DINGTALK_PKG) ?: return false

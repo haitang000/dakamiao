@@ -12,6 +12,7 @@ object Prefs {
     private const val KEY_ENABLED = "enabled"
     private const val KEY_WORKDAY_ONLY = "workday_only"
     private const val KEY_OCR = "ocr_enabled"
+    private const val KEY_KILL = "kill_before"
     private const val KEY_ONBOARDED = "onboarded"
     private const val KEY_ON_TIME = "on_time"
     private const val KEY_OFF_TIME = "off_time"
@@ -51,6 +52,10 @@ object Prefs {
     fun isOcrEnabled(context: Context) = sp(context).getBoolean(KEY_OCR, true)
     fun setOcrEnabled(context: Context, v: Boolean) =
         sp(context).edit().putBoolean(KEY_OCR, v).apply()
+
+    fun isKillBefore(context: Context) = sp(context).getBoolean(KEY_KILL, true)
+    fun setKillBefore(context: Context, v: Boolean) =
+        sp(context).edit().putBoolean(KEY_KILL, v).apply()
 
     fun isOnboarded(context: Context) = sp(context).getBoolean(KEY_ONBOARDED, false)
     fun setOnboarded(context: Context, v: Boolean) =

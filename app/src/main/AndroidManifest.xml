@@ -16,6 +16,8 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <!-- 锁屏时到点全屏强提醒，点亮屏幕促使用户解锁 -->
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+    <!-- 打卡前退出钉钉后台，冷启动到干净状态 -->
+    <uses-permission android:name="android.permission.KILL_BACKGROUND_PROCESSES" />
 
     <!-- Android 11+ 包可见性：需要能看到并启动钉钉 -->
     <queries>

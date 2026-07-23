@@ -263,6 +263,13 @@
                     a:layout_marginTop="8dp"
                     a:text="启用 OCR 兜底：按钮是图片、读不到文字时，靠截屏文字识别定位（需安卓11+，全程离线不联网）" />
 
+                <com.google.android.material.checkbox.MaterialCheckBox
+                    android:id="@+id/cbKill"
+                    a:layout_width="match_parent"
+                    a:layout_height="wrap_content"
+                    a:layout_marginTop="4dp"
+                    a:text="打卡前先退出钉钉后台：冷启动到消息页，导航更稳定" />
+
                 <Button
                     android:id="@+id/btnResetSteps"
                     style="@style/Widget.Material3.Button.TonalButton"
