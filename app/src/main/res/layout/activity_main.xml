@@ -176,6 +176,14 @@
                     a:layout_height="wrap_content"
                     a:text="打卡步骤（一行一个按钮文案，从上到下依次点击）" />
 
+                <TextView
+                    a:layout_width="match_parent"
+                    a:layout_height="wrap_content"
+                    a:layout_marginTop="4dp"
+                    a:text="语法：@开头=动作（@回到主页 先退回主界面、@滚动到顶部）；=开头=精确匹配（只点文字完全相等的，如 =工作台 避免误点进会话）；其余=包含匹配。"
+                    a:textColor="?attr/colorOnSurfaceVariant"
+                    a:textSize="12sp" />
+
                 <com.google.android.material.textfield.TextInputLayout
                     style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                     a:layout_width="match_parent"
@@ -254,6 +262,22 @@
                         a:gravity="top"
                         a:inputType="textMultiLine"
                         a:minLines="1" />
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
+                    a:layout_width="match_parent"
+                    a:layout_height="wrap_content"
+                    a:layout_marginTop="8dp"
+                    a:hint="判定「被拦截/打卡失败」的关键词（如 虚拟定位、不在考勤范围）">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etFail"
+                        a:layout_width="match_parent"
+                        a:layout_height="wrap_content"
+                        a:gravity="top"
+                        a:inputType="textMultiLine"
+                        a:minLines="2" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <com.google.android.material.checkbox.MaterialCheckBox
@@ -366,6 +390,22 @@
                     a:layout_width="match_parent"
                     a:layout_height="wrap_content"
                     a:text="忽略电池优化（建议，防止定时被系统杀）" />
+
+                <Button
+                    android:id="@+id/btnAutostart"
+                    style="@style/Widget.Material3.Button.TonalButton"
+                    a:layout_width="match_parent"
+                    a:layout_height="wrap_content"
+                    a:layout_marginTop="4dp"
+                    a:text="允许自启动 / 后台运行（国产 ROM 必开）" />
+
+                <TextView
+                    a:layout_width="match_parent"
+                    a:layout_height="wrap_content"
+                    a:layout_marginTop="12dp"
+                    a:text="后台保活：开启「定时」后会常驻一条低优先级通知保持后台运行。国产 ROM 请务必在上方开启自启动/后台运行，并把电池设为「无限制」，否则到点可能不触发。"
+                    a:textColor="?attr/colorOnSurfaceVariant"
+                    a:textSize="12sp" />
             </LinearLayout>
         </ScrollView>
     </FrameLayout>

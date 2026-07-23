@@ -21,20 +21,24 @@ object Prefs {
     private const val KEY_SUCCESS = "success_keywords"
     private const val KEY_FACE = "face_keywords"
     private const val KEY_CONFIRM = "confirm_keywords"
+    private const val KEY_FAIL = "fail_keywords"
     private const val KEY_LAUNCH_WAIT = "launch_wait_ms"
     private const val KEY_STEP_TIMEOUT = "step_timeout_ms"
 
     // 默认值：按最常见的钉钉「工作台 → 考勤打卡 → 上/下班打卡」路径给出，用户可自行修改。
     const val DEFAULT_ON_TIME = "09:00"
     const val DEFAULT_OFF_TIME = "18:00"
-    // 路径：消息页滚动到顶 → 点顶部导航栏「打卡」进入打卡页 → 点「上/下班打卡」大按钮
-    // 以 @ 开头的是动作指令（如 @滚动到顶部），其余是要点击的按钮文字
-    const val DEFAULT_ON_STEPS = "@滚动到顶部\n打卡\n上班打卡"
-    const val DEFAULT_OFF_STEPS = "@滚动到顶部\n打卡\n下班打卡"
+    // 路径：先退回主界面 → 底部「工作台」标签 → 工作台里的「考勤打卡」应用 → 打卡页「上/下班打卡」大按钮
+    // 全程不碰消息/聊天列表。@开头=动作指令；=开头=精确匹配（只点文字完全相等的，避免误点进会话）
+    const val DEFAULT_ON_STEPS = "@回到主页\n=工作台\n=考勤打卡\n上班打卡"
+    const val DEFAULT_OFF_STEPS = "@回到主页\n=工作台\n=考勤打卡\n下班打卡"
     const val DEFAULT_SUCCESS = "打卡成功\n更新打卡\n已打卡\n打卡时间"
     // 只放真正会挡住打卡、必须本人完成的「人脸活体识别」；「拍照」在外勤等页面通常是可选项，不拦
     const val DEFAULT_FACE = "人脸\n刷脸\n人脸识别\n眨眼\n活体\n开始识别"
     const val DEFAULT_CONFIRM = "外勤\n外出"
+
+    // 拦截/失败提示：命中即判打卡未成功。特意不含「外勤/早退/异常」（那些是成功但被标记）
+    const val DEFAULT_FAIL = "虚拟定位\n请卸载\n不允许使用\n定位失败\n打卡失败\n不在考勤范围\n不在打卡范围\n无法打卡"
     const val DEFAULT_LAUNCH_WAIT_MS = 4000L
     const val DEFAULT_STEP_TIMEOUT_MS = 15000L
 
@@ -68,6 +72,7 @@ object Prefs {
         setSuccessRaw(context, DEFAULT_SUCCESS)
         setFaceRaw(context, DEFAULT_FACE)
         setConfirmRaw(context, DEFAULT_CONFIRM)
+        setFailRaw(context, DEFAULT_FAIL)
     }
 
     fun getTime(context: Context, type: ClockType): String {
@@ -124,6 +129,15 @@ object Prefs {
 
     fun setConfirmRaw(context: Context, raw: String) =
         sp(context).edit().putString(KEY_CONFIRM, raw).apply()
+
+    fun getFailKeywords(context: Context) =
+        parseLines(sp(context).getString(KEY_FAIL, DEFAULT_FAIL) ?: DEFAULT_FAIL)
+
+    fun getFailRaw(context: Context) =
+        sp(context).getString(KEY_FAIL, DEFAULT_FAIL) ?: DEFAULT_FAIL
+
+    fun setFailRaw(context: Context, raw: String) =
+        sp(context).edit().putString(KEY_FAIL, raw).apply()
 
     fun getLaunchWaitMs(context: Context) =
         sp(context).getLong(KEY_LAUNCH_WAIT, DEFAULT_LAUNCH_WAIT_MS)

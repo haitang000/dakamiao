@@ -45,6 +45,9 @@ class MainActivity : AppCompatActivity() {
         }
         showPage(R.id.nav_home)
 
+        // 定时已开启则确保保活服务在跑
+        if (Prefs.isEnabled(this)) KeepAliveService.start(this)
+
         // 首次启动：拉起新手引导
         if (savedInstanceState == null && !Prefs.isOnboarded(this)) {
             startActivity(Intent(this, OnboardingActivity::class.java))
@@ -71,6 +74,7 @@ class MainActivity : AppCompatActivity() {
         etSuccess.setText(Prefs.getSuccessRaw(this@MainActivity))
         etFace.setText(Prefs.getFaceRaw(this@MainActivity))
         etConfirm.setText(Prefs.getConfirmRaw(this@MainActivity))
+        etFail.setText(Prefs.getFailRaw(this@MainActivity))
     }
 
     private fun showPage(itemId: Int) = with(binding) {
@@ -107,18 +111,21 @@ class MainActivity : AppCompatActivity() {
         btnNotification.setOnClickListener { requestNotificationPermission() }
         btnExactAlarm.setOnClickListener { openExactAlarmSettings() }
         btnBattery.setOnClickListener { requestIgnoreBattery() }
+        btnAutostart.setOnClickListener { openAutostartSettings() }
 
         // —— 定时 ——
         swEnabled.setOnCheckedChangeListener { _, checked ->
             Prefs.setEnabled(this@MainActivity, checked)
             if (checked) {
                 AlarmScheduler.rescheduleAll(this@MainActivity)
+                KeepAliveService.start(this@MainActivity)
                 toast("定时已开启")
                 if (!AutoClockAccessibilityService.isConnected()) {
                     toast("提醒：还没开启无障碍服务，到点无法自动打卡")
                 }
             } else {
                 AlarmScheduler.cancelAll(this@MainActivity)
+                KeepAliveService.stop(this@MainActivity)
                 toast("定时已关闭")
             }
         }
@@ -141,6 +148,7 @@ class MainActivity : AppCompatActivity() {
             etSuccess.setText(Prefs.DEFAULT_SUCCESS)
             etFace.setText(Prefs.DEFAULT_FACE)
             etConfirm.setText(Prefs.DEFAULT_CONFIRM)
+            etFail.setText(Prefs.DEFAULT_FAIL)
             toast("已填入推荐值，检查后点「保存」")
         }
         btnSaveSteps.setOnClickListener {
@@ -149,6 +157,7 @@ class MainActivity : AppCompatActivity() {
             Prefs.setSuccessRaw(this@MainActivity, etSuccess.text.toString())
             Prefs.setFaceRaw(this@MainActivity, etFace.text.toString())
             Prefs.setConfirmRaw(this@MainActivity, etConfirm.text.toString())
+            Prefs.setFailRaw(this@MainActivity, etFail.text.toString())
             toast("已保存")
         }
 
@@ -205,6 +214,7 @@ class MainActivity : AppCompatActivity() {
         Prefs.setSuccessRaw(this, binding.etSuccess.text.toString())
         Prefs.setFaceRaw(this, binding.etFace.text.toString())
         Prefs.setConfirmRaw(this, binding.etConfirm.text.toString())
+        Prefs.setFailRaw(this, binding.etFail.text.toString())
 
         toast("开始${type.label}打卡，可随时用悬浮按钮/音量下键停止")
         svc.startClockIn(type)
@@ -241,6 +251,41 @@ class MainActivity : AppCompatActivity() {
                 .setData(Uri.parse("package:$packageName"))
             startActivitySafe(i)
         }
+    }
+
+    /** 尽力跳到各家 ROM 的自启动/后台管理页；都打不开则退回应用详情页。 */
+    private fun openAutostartSettings() {
+        val candidates = listOf(
+            "com.miui.securitycenter" to "com.miui.permcenter.autostart.AutoStartManagementActivity",
+            "com.huawei.systemmanager" to "com.huawei.systemmanager.startupmgr.ui.StartupNormalAppListActivity",
+            "com.huawei.systemmanager" to "com.huawei.systemmanager.optimize.process.ProtectActivity",
+            "com.coloros.safecenter" to "com.coloros.safecenter.permission.startup.StartupAppListActivity",
+            "com.coloros.safecenter" to "com.coloros.safecenter.startupapp.StartupAppListActivity",
+            "com.oplus.safecenter" to "com.oplus.safecenter.startup.StartupAppListActivity",
+            "com.oppo.safe" to "com.oppo.safe.permission.startup.StartupAppListActivity",
+            "com.vivo.permissionmanager" to "com.vivo.permissionmanager.activity.BgStartUpManagerActivity",
+            "com.iqoo.secure" to "com.iqoo.secure.ui.phoneoptimize.AddWhiteListActivity",
+            "com.samsung.android.lool" to "com.samsung.android.sm.battery.ui.BatteryActivity",
+            "com.letv.android.letvsafe" to "com.letv.android.letvsafe.AutobootManageActivity",
+            "com.oneplus.security" to "com.oneplus.security.chainlaunch.view.ChainLaunchAppListActivity"
+        )
+        for ((pkg, cls) in candidates) {
+            try {
+                startActivity(
+                    Intent().setClassName(pkg, cls).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                )
+                toast("请在此页找到「打卡喵」并允许自启动/后台运行")
+                return
+            } catch (_: Throwable) {
+                // 该机型没有这个页面，试下一个
+            }
+        }
+        // 兜底：应用详情页
+        startActivitySafe(
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+                .setData(Uri.parse("package:$packageName"))
+        )
+        toast("请在应用详情里找到「自启动/后台运行」等项并允许")
     }
 
     // ------------------------------------------------------------------
@@ -282,7 +327,7 @@ class MainActivity : AppCompatActivity() {
         try {
             startActivity(intent)
         } catch (t: Throwable) {
-            toast("无法打开该设置页，请手动到系统设置里操作")
+            toast("无法打开该设置页，请手动前往系统设置操作")
         }
     }
 

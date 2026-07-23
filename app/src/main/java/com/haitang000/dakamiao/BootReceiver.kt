@@ -11,6 +11,7 @@ class BootReceiver : BroadcastReceiver() {
         Log.i("DaKaMiao", "收到广播：${intent?.action}，重排闹钟")
         if (Prefs.isEnabled(context)) {
             AlarmScheduler.rescheduleAll(context)
+            KeepAliveService.start(context)
         }
     }
 }

@@ -23,6 +23,9 @@ class ClockAlarmReceiver : BroadcastReceiver() {
 
         if (!Prefs.isEnabled(context)) return
 
+        // 确保保活服务在运行（进程可能被杀过又被闹钟唤醒）
+        KeepAliveService.start(context)
+
         // 仅工作日模式下，周末跳过
         if (Prefs.isWorkdayOnly(context) && isWeekend()) {
             Log.i("DaKaMiao", "周末，按设置跳过打卡")

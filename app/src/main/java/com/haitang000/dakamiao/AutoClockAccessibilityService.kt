@@ -396,6 +396,11 @@ class AutoClockAccessibilityService : AccessibilityService() {
             return RunResult(RunStatus.STEP_FAILED, "未配置任何打卡步骤")
         }
 
+        // 外勤等「需确认」只在最后一个真正点击的步骤（即打卡界面上的打卡按钮）判断，导航途中不查
+        val lastClickIndex = steps.indices.lastOrNull {
+            !isScrollTopDirective(steps[it]) && !isBackHomeDirective(steps[it])
+        } ?: -1
+
         for ((index, keyword) in steps.withIndex()) {
             if (shouldStop) return stopped()
 
@@ -407,16 +412,29 @@ class AutoClockAccessibilityService : AccessibilityService() {
                 continue
             }
 
-            val clicked = findAndClick(keyword, confirmKw, stepTimeout)
+            // 动作指令：按返回键退出聊天/子页面，回到有底部标签栏的主界面
+            if (isBackHomeDirective(keyword)) {
+                updateBorder(false)
+                backToHome()
+                if (!sleepChecked(600)) return stopped()
+                continue
+            }
+
+            // = 开头表示精确匹配（只点文字完全相等的节点），用于「打卡」这种在消息里也常出现的短词
+            val exact = keyword.startsWith("=")
+            val kw = if (exact) keyword.removePrefix("=").trim() else keyword
+            // 仅打卡界面那步（最后一个点击步）才做外勤确认，导航步传空
+            val stepConfirm = if (index == lastClickIndex) confirmKw else emptyList()
+            val clicked = findAndClick(kw, exact, stepConfirm, stepTimeout)
             if (!clicked) {
                 if (shouldStop) return stopped()
                 // 没找到这一步的按钮：也许已经打过卡了？先看屏幕上有没有成功字样。
                 if (scanForAny(successKw)) {
-                    return RunResult(RunStatus.SUCCESS, "检测到已打卡（未找到「$keyword」但界面显示已完成）")
+                    return RunResult(RunStatus.SUCCESS, "检测到已打卡（未找到「$kw」但界面显示已完成）")
                 }
                 return RunResult(
                     RunStatus.STEP_FAILED,
-                    "第 ${index + 1} 步未找到「$keyword」。请在设置里核对你钉钉里的实际按钮文案。"
+                    "第 ${index + 1} 步未找到「$kw」。请在设置里核对你钉钉里的实际按钮文案。"
                 )
             }
             // 每步之间留出界面切换时间
@@ -427,25 +445,90 @@ class AutoClockAccessibilityService : AccessibilityService() {
         return detectResult()
     }
 
-    /** 点完最后的打卡按钮后，在若干秒内轮询判断结果。人脸优先——一旦发现立即停手交还用户。 */
+    /**
+     * 点完最后的打卡按钮后，在若干秒内轮询判断结果。
+     * 优先级：拦截/失败（明确未成功）> 人脸（交还本人）> 成功。都没有则「未能确认」。
+     */
     private fun detectResult(): RunResult {
+        val failKw = Prefs.getFailKeywords(this)
         val faceKw = Prefs.getFaceKeywords(this)
         val successKw = Prefs.getSuccessKeywords(this)
-        val deadline = System.currentTimeMillis() + 6000
-        while (System.currentTimeMillis() < deadline) {
+
+        // 点击后先给结果弹窗一点出现时间
+        if (!sleepChecked(1500)) return stopped()
+
+        // 成功弹窗（如「下班打卡成功」）常在点击后数秒才出现，甚至先经过「定位中/打卡中」。
+        // 常规等 15s；若还在加载则续期，最长等 25s。
+        val start = System.currentTimeMillis()
+        val hardDeadline = start + 25_000L
+        var softDeadline = start + 15_000L
+        // 成功文字需持续存在这么久才判成功——避免残留的历史「打卡成功」让我们抢在拦截框弹出前误判
+        val successConfirmMs = 6000L
+        var successSince = 0L
+
+        while (true) {
+            val now = System.currentTimeMillis()
             if (shouldStop) return stopped()
-            if (scanForAny(faceKw)) {
-                return RunResult(RunStatus.NEED_FACE, "检测到人脸/拍照界面，请你本人完成验证")
+            if (now >= hardDeadline || now >= softDeadline) break
+
+            // 最优先：拦截/失败（如「公司不允许使用虚拟定位软件」）随时出现随时判失败，绝不算成功
+            val blocked = findTextContaining(failKw)
+            if (blocked != null) {
+                return RunResult(
+                    RunStatus.STEP_FAILED,
+                    "打卡未成功，检测到拦截/失败提示：\n“$blocked”\n请打开钉钉手动处理。"
+                )
             }
+            if (scanForAny(faceKw)) {
+                return RunResult(RunStatus.NEED_FACE, "检测到人脸识别界面，请你本人完成验证")
+            }
+
+            // 成功需持续确认期，期间若冒出拦截框会被上面的失败判定压过
             if (scanForAny(successKw)) {
-                return RunResult(RunStatus.SUCCESS, "打卡成功")
+                if (successSince == 0L) successSince = now
+                if (now - successSince >= successConfirmMs) {
+                    return RunResult(RunStatus.SUCCESS, "打卡成功")
+                }
+            } else {
+                successSince = 0L
+            }
+
+            // 还在定位/打卡处理中 → 续期，继续等结果
+            val root = rootInActiveWindow
+            if (root != null && isPageLoading(root)) {
+                softDeadline = minOf(now + 15_000L, hardDeadline)
             }
             if (!sleepChecked(500)) return stopped()
         }
+        // 到点：全程见到成功文字且始终没冒出拦截/失败 → 判成功；否则未能确认
+        if (successSince != 0L) return RunResult(RunStatus.SUCCESS, "打卡成功")
         return RunResult(
             RunStatus.UNKNOWN,
             "已点击打卡按钮，但未能确认结果，请打开钉钉核对一下。"
         )
+    }
+
+    /** 返回第一处包含任一关键词的节点文字（截断 80 字），没有则 null。用于把拦截提示原文显示给用户。 */
+    private fun findTextContaining(keywords: List<String>): String? {
+        if (keywords.isEmpty()) return null
+        val root = rootInActiveWindow ?: return null
+        val queue = ArrayDeque<AccessibilityNodeInfo>()
+        queue.add(root)
+        while (queue.isNotEmpty()) {
+            val node = queue.removeFirst()
+            val text = node.text?.toString()?.trim().orEmpty()
+            val desc = node.contentDescription?.toString()?.trim().orEmpty()
+            val hay = when {
+                keywords.any { text.contains(it) } -> text
+                keywords.any { desc.contains(it) } -> desc
+                else -> null
+            }
+            if (hay != null) return hay.take(80)
+            for (i in 0 until node.childCount) {
+                node.getChild(i)?.let { queue.add(it) }
+            }
+        }
+        return null
     }
 
     private fun stopped() = RunResult(RunStatus.STOPPED, "已中断")
@@ -467,7 +550,8 @@ class AutoClockAccessibilityService : AccessibilityService() {
 
     private fun launchDingTalk(): Boolean {
         val intent = packageManager.getLaunchIntentForPackage(DINGTALK_PKG) ?: return false
-        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        // CLEAR_TOP 尽量让钉钉回到主活动而非停在上次的聊天页（不同版本效果不一，配合 @回到主页 兜底）
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         return try {
             startActivity(intent)
             true
@@ -486,7 +570,12 @@ class AutoClockAccessibilityService : AccessibilityService() {
      * 顺序：无障碍文字匹配（快） → 滚动一次露出折叠内容 → OCR 兜底（按钮是图片时）。
      * 若发现「需确认」按钮（如「外勤打卡」），会先暂停弹窗让用户确认，取消则中断整个流程。
      */
-    private fun findAndClick(keyword: String, confirmKeywords: List<String>, timeoutMs: Long): Boolean {
+    private fun findAndClick(
+        keyword: String,
+        exact: Boolean,
+        confirmKeywords: List<String>,
+        timeoutMs: Long
+    ): Boolean {
         val start = System.currentTimeMillis()
         // 硬上限：即使一直在加载也不无限等；软超时：页面已加载好却找不到按钮时的正常放弃点
         val hardDeadline = start + maxOf(timeoutMs, 45_000L)
@@ -531,7 +620,7 @@ class AutoClockAccessibilityService : AccessibilityService() {
                     }
                 }
 
-                val node = findNodeByText(root, keyword)
+                val node = findNodeByText(root, keyword, exact)
                 if (node != null) {
                     // 命中可点击控件但仍禁用（常见于「定位中」打卡按钮不可点）：先不点，等它可用。
                     // 无可点击祖先时（自绘按钮）用手势兜底。
@@ -547,14 +636,14 @@ class AutoClockAccessibilityService : AccessibilityService() {
                 loading = isPageLoading(root)
                 if (loading) softDeadline = minOf(now + timeoutMs, hardDeadline)
 
-                // 只有在不是加载态、且没找到时才尝试滚动露出折叠内容
+                // 不是加载态且没找到时，尝试滚动一次露出折叠内容（如工作台里靠下的「考勤打卡」）
                 if (node == null && !loading && !scrolledOnce) {
                     scrolledOnce = scrollForward(root)
                 }
             }
 
-            // OCR 兜底：无障碍读不到（按钮是图片）时截屏识别定位。加载中跳过（黑屏没内容可识别）。
-            if (ocrEnabled && !loading && now - lastOcr > 1300) {
+            // OCR 兜底：无障碍读不到（按钮是图片）时截屏识别定位。加载中或精确匹配步骤跳过。
+            if (ocrEnabled && !exact && !loading && now - lastOcr > 1300) {
                 lastOcr = now
                 val rect = ScreenTextLocator.findText(this, keyword)
                 if (shouldStop) return false
@@ -602,31 +691,35 @@ class AutoClockAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * 遍历整棵树，给所有「text/desc 含 keyword」的候选打分，返回最优：
-     * 完全相等 > 可点击 > 已启用 > 多余文字更少。
-     * 目的：避开消息/通知列表里包含关键词的长文本条目（如"考勤打卡 9:00 请及时打卡"），
-     * 优先真正的打卡按钮。
+     * 遍历整棵树，给所有匹配候选打分，返回最优：完全相等 > 可点击 > 已启用 > 多余文字少 > 越靠上。
+     * exact=true 时只接受「文字完全相等」的节点（用于「打卡」这种在消息里也常出现的短词，
+     * 避免误点进"考勤打卡""工作通知"这类会话）。
      */
-    private fun findNodeByText(root: AccessibilityNodeInfo, keyword: String): AccessibilityNodeInfo? {
+    private fun findNodeByText(
+        root: AccessibilityNodeInfo,
+        keyword: String,
+        exact: Boolean
+    ): AccessibilityNodeInfo? {
         var best: AccessibilityNodeInfo? = null
         var bestScore = Int.MIN_VALUE
+        val rect = Rect()
         val queue = ArrayDeque<AccessibilityNodeInfo>()
         queue.add(root)
         while (queue.isNotEmpty()) {
             val node = queue.removeFirst()
-            val text = node.text?.toString().orEmpty()
-            val desc = node.contentDescription?.toString().orEmpty()
-            val hay = when {
-                text.contains(keyword) -> text
-                desc.contains(keyword) -> desc
-                else -> null
-            }
-            if (hay != null) {
+            val text = node.text?.toString()?.trim().orEmpty()
+            val desc = node.contentDescription?.toString()?.trim().orEmpty()
+            val equals = text == keyword || desc == keyword
+            val matched = if (exact) equals else (text.contains(keyword) || desc.contains(keyword))
+            if (matched) {
+                val hay = if (text.contains(keyword)) text else desc
                 var score = 0
-                if (text == keyword || desc == keyword) score += 1000      // 完全相等最优
-                if (clickableAncestor(node) != null) score += 300          // 可点击优先
+                if (equals) score += 1000                                   // 完全相等最优
+                if (clickableAncestor(node) != null) score += 300           // 可点击优先
                 if (node.isEnabled) score += 50
-                score -= (hay.length - keyword.length).coerceAtLeast(0) * 5 // 多余文字越多越差
+                score -= (hay.length - keyword.length).coerceAtLeast(0) * 5  // 多余文字越多越差
+                node.getBoundsInScreen(rect)
+                score -= rect.top / 20                                       // 越靠屏幕上方越优先（导航栏在顶部）
                 if (score > bestScore) {
                     bestScore = score
                     best = node
@@ -762,11 +855,68 @@ class AutoClockAccessibilityService : AccessibilityService() {
         return s == "滚动到顶部" || s == "滑到顶部" || s == "上滑到顶"
     }
 
+    /** step 是否为「回到主页」动作指令（@开头且含 主页/首页/回到/back）。 */
+    private fun isBackHomeDirective(step: String): Boolean {
+        val s = step.trim()
+        if (!s.startsWith("@")) return false
+        val cmd = s.removePrefix("@").lowercase()
+        return cmd.contains("主页") || cmd.contains("首页") || cmd.contains("回到") || cmd.contains("back")
+    }
+
+    /**
+     * 按返回键退出聊天/子页面，直到回到有底部标签栏（「工作台」可见）的主界面。
+     * 最多退 maxTries 次；若已在主页则一次都不退；若退到已不在钉钉则立即停止，避免退出钉钉。
+     */
+    private fun backToHome(maxTries: Int = 6) {
+        for (i in 0 until maxTries) {
+            if (shouldStop) return
+            val root = rootInActiveWindow
+            if (root != null) {
+                val pkg = root.packageName?.toString()
+                if (pkg != null && pkg != DINGTALK_PKG) return // 已不在钉钉，别再退
+                if (isOnMainPage(root)) return                 // 已回到主页
+            }
+            performGlobalAction(GLOBAL_ACTION_BACK)
+            if (!sleepChecked(700)) return
+        }
+    }
+
+    /** 主界面判定：能看到底部标签「工作台/工作」即视为在主界面（聊天详情页没有它）。 */
+    private fun isOnMainPage(root: AccessibilityNodeInfo): Boolean =
+        hasExactText(root, listOf("工作台", "工作"))
+
+    private fun hasExactText(root: AccessibilityNodeInfo, texts: List<String>): Boolean {
+        val queue = ArrayDeque<AccessibilityNodeInfo>()
+        queue.add(root)
+        while (queue.isNotEmpty()) {
+            val node = queue.removeFirst()
+            val t = node.text?.toString()?.trim()
+            val d = node.contentDescription?.toString()?.trim()
+            if (t in texts || d in texts) return true
+            for (i in 0 until node.childCount) {
+                node.getChild(i)?.let { queue.add(it) }
+            }
+        }
+        return false
+    }
+
     // ------------------------------------------------------------------
     // 收尾
     // ------------------------------------------------------------------
 
     private fun finish(type: ClockType, result: RunResult) {
+        // 失败/异常/未确认：红色跑马灯 + 提示音明确警示，短暂显现后再收尾
+        val failed = result.status == RunStatus.STEP_FAILED ||
+            result.status == RunStatus.ERROR ||
+            result.status == RunStatus.APP_NOT_FOUND ||
+            result.status == RunStatus.UNKNOWN
+        if (failed) {
+            val wasBlocked = borderBlocked
+            updateBorder(true)                 // 转红（原本蓝会顺带响一次提示音）
+            if (wasBlocked) playBlockedTone()  // 原本已红没触发，这里补一次，保证失败必响
+            sleepChecked(1600)
+        }
+
         removeOverlay()
         removeBorder()
         running = false

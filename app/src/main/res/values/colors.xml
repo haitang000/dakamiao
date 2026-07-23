@@ -3,6 +3,9 @@
     <color name="white">#FFFFFFFF</color>
     <color name="black">#FF000000</color>
 
+    <!-- 自适应图标背景（采样自 icon.png 浅蓝底） -->
+    <color name="ic_launcher_bg">#EAF0FC</color>
+
     <!-- Material 3 配色（浅色）——蓝色系，与边框跑马灯呼应 -->
     <color name="md_primary">#1660D6</color>
     <color name="md_on_primary">#FFFFFF</color>
