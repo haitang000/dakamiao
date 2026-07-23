@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   build:
-    name: 打包 Debug APK
+    name: 打包 Release APK
     runs-on: ubuntu-latest
     steps:
       - name: 检出代码
@@ -40,19 +40,39 @@ jobs:
       - name: 赋予 gradlew 执行权限
         run: chmod +x ./gradlew
 
-      - name: 构建 Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+      - name: 从 Secret 恢复签名密钥库
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 -d > dakamiao-release.jks
+            {
+              echo "storeFile=dakamiao-release.jks"
+              echo "storePassword=$KEYSTORE_PASSWORD"
+              echo "keyAlias=$KEY_ALIAS"
+              echo "keyPassword=$KEY_PASSWORD"
+            } > keystore.properties
+            echo "已恢复签名密钥库，将产出已签名 release"
+          else
+            echo "未配置签名密钥（Secrets 缺失），将产出未签名 release"
+          fi
+
+      - name: 构建 Release APK
+        run: ./gradlew assembleRelease --stacktrace
 
       - name: 上传 APK 为构建产物
         uses: actions/upload-artifact@v4
         with:
-          name: dakamiao-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: dakamiao-release-apk
+          path: app/build/outputs/apk/release/*.apk
           if-no-files-found: error
 
       - name: 打 tag 时创建 Release 并附上 APK
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: app/build/outputs/apk/debug/app-debug.apk
+          files: app/build/outputs/apk/release/*.apk
           generate_release_notes: true
