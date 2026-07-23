@@ -1,0 +1,6 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- 深色：仅需把状态栏图标改为浅色，颜色 token 走 values-night/colors.xml 自动切换 -->
+    <style name="Theme.DaKaMiao" parent="Base.Theme.DaKaMiao">
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>

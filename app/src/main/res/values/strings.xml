@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">打卡喵</string>
+    <string name="accessibility_label">打卡喵 · 自动点击</string>
+    <string name="accessibility_description">用于在钉钉界面里自动找到并点击打卡按钮。开启后，打卡喵可以读取当前屏幕内容并模拟点击以完成打卡；全程可通过悬浮按钮、通知栏或音量下键随时停止。仅在你手动触发或到达设定时间时工作，不会上传任何数据。</string>
+</resources>
